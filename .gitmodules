@@ -1,12 +1,12 @@
-[submodule "lib/canvas"]
-	path = lib/canvas
+[submodule "libs/canvas"]
+	path = libs/canvas
 	url = git@github.com:estebanwaseaten/canvas.git
-[submodule "lib/raspi"]
-	path = lib/raspi
+[submodule "libs/raspi"]
+	path = libs/raspi
 	url = git@github.com:estebanwaseaten/raspi.git
-[submodule "lib/terminalio"]
-	path = lib/terminalio
+[submodule "libs/terminalio"]
+	path = libs/terminalio
 	url = git@github.com:estebanwaseaten/terminalio.git
-[submodule "lib/threader"]
-	path = lib/threader
+[submodule "libs/threader"]
+	path = libs/threader
 	url = git@github.com:estebanwaseaten/threader.git
