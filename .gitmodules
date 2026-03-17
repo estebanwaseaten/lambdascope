@@ -1,0 +1,12 @@
+[submodule "lib/canvas"]
+	path = lib/canvas
+	url = git@github.com:estebanwaseaten/canvas.git
+[submodule "lib/raspi"]
+	path = lib/raspi
+	url = git@github.com:estebanwaseaten/raspi.git
+[submodule "lib/terminalio"]
+	path = lib/terminalio
+	url = git@github.com:estebanwaseaten/terminalio.git
+[submodule "lib/threader"]
+	path = lib/threader
+	url = git@github.com:estebanwaseaten/threader.git
