@@ -28,7 +28,14 @@ class textElement;
 class scopeElement : public element
 {
 public:
-    scopeElement( int px, int py, int width, int height );
+    scopeElement( int px, int py, int width, int height );      //parent element for the oscilloscope
+
+    //needs function to provide data and size for several channels...
+    // who does the interpolation though --> scope size is fixed
+    //      --> if redraws are needed: calc display buffer once and redraw from that
+
+    
+
     void process();
     void draw();
 

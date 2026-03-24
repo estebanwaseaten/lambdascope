@@ -31,6 +31,7 @@ controller::controller()
 	//abort();
 
 	myRaspi = new raspi_info();
+	myRaspi->spidev_set_handle( SPI_HANDLE_B );
 
 	//screen to draw to
 	mainCanvas = new canvas();
@@ -87,44 +88,68 @@ controller::~controller()
 	delete myRaspi;
 }
 
+uint16_t controller::doubleTransfer( uint16_t cmd )
+{
+	simpleTransfer( cmd );
+	return simpleTransfer( 0x5000 );
+}
+
+uint16_t controller::simpleTransfer( uint16_t cmd )
+{
+	uint8_t transfer[2] = {(uint8_t)(cmd >> 8), (uint8_t)cmd };
+	myRaspi->spiTransfer( transfer, 2 );
+
+	uint16_t highbits = transfer[0];
+    uint16_t lowbits = transfer[1];
+    //uint16_t result = (highbits << 8) + lowbits;
+	return (highbits << 8) + lowbits;
+}
+
+void controller::fetchData( uint32_t channel, uint32_t size )
+{
+	uint16_t result;
+	uint8_t *result8 = (uint8_t*)&result;		//returned data is in result8[0]
+
+	for( int i = 0; i < size; i++ )
+	{
+		result = simpleTransfer( 0x5000 );
+		cout << dec << (int)result << "; ";
+	}
+	cout << endl;
+}
+
 void controller::mainLoop()
 {
 	std::chrono::milliseconds idleTime(100);
 
 	running = true;
 
+
+	uint16_t result;
+	uint8_t *result8 = (uint8_t*)&result;		//returned data is in result8[0]
+
 	while( running )
 	{
 		if( !daq_paused )
 		{
-			uint8_t bytesOut[2];
-			bytesOut[0] = 0x60;
-			bytesOut[1] = 0x00;
-			myRaspi->spiTransfer( bytesOut, 2 );
-			cout << hex << "0x" << (uint32_t)bytesOut[0] << ", 0x" << (uint32_t)bytesOut[1] << endl;
-			bytesOut[0] = 0x50;
-			myRaspi->spiTransfer( bytesOut, 2 );
-			cout << hex << "0x" << (uint32_t)bytesOut[0] << ", 0x" << (uint32_t)bytesOut[1] << endl;
+			result = doubleTransfer( 0x6000 );
+			cout << hex << "0x" << (uint16_t)result8[1] << ", 0x" << (uint16_t)result8[0] << endl;
 
-		//	if( bytesOut[1] == 1 )	//data available for channel 1
-		//	{
-				bytesOut[0] = 0x62;
-				myRaspi->spiTransfer( bytesOut, 2 );
-				bytesOut[0] = 0x50;
-				myRaspi->spiTransfer( bytesOut, 2 );
-				cout << hex << "0x" << (uint32_t)bytesOut[0] << ", 0x" << (uint32_t)bytesOut[1] << endl;
-				bytesOut[0] = 0x50;
-				myRaspi->spiTransfer( bytesOut, 2 );
-				cout << hex << "0x" << (uint32_t)bytesOut[0] << ", 0x" << (uint32_t)bytesOut[1] << endl;
-				bytesOut[0] = 0x50;
-				myRaspi->spiTransfer( bytesOut, 2 );
-				cout << hex << "0x" << (uint32_t)bytesOut[0] << ", 0x" << (uint32_t)bytesOut[1] << endl;
-				bytesOut[0] = 0x50;
-				myRaspi->spiTransfer( bytesOut, 2 );
-				cout << hex << "0x" << (uint32_t)bytesOut[0] << ", 0x" << (uint32_t)bytesOut[1] << endl;
+			if( result8[0] == 1 )
+			{
+				cout << "data available" << endl;
+				result = doubleTransfer( 0x6201 );	//result is the response of the request.
+				//the next data sent will be the size:
+				result = simpleTransfer( 0x5000 );
 
-		//	}
+				cout << "data size: " << dec << result << endl;
 
+				fetchData( 1, result );		//channel, size
+
+				//restart acquiring (should not be necessary after all data is transferred, but why not...)
+				result = doubleTransfer( 0x5F00 );	//abort
+				result = doubleTransfer( 0x6100 );	//start
+			}
 
 			//copy data from scope channel buffer to display buffer until display buffer is filled!!!
 			//mainScope->setAveraging( myScopeElement.getAveragingRequest() );

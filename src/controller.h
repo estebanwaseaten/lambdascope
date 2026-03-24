@@ -52,6 +52,11 @@ public:
 
     void winResize( int w, int h );
 
+    //SPI helper methods
+    uint16_t doubleTransfer( uint16_t cmd );
+    uint16_t simpleTransfer( uint16_t cmd );
+    void fetchData( uint32_t channel, uint32_t size );
+
 
 private:
     long	   counter = 0;
